@@ -19,7 +19,8 @@ for i=1:imax-1
     zvec(i+1,1) = zvec(i,1) - int_costh_ds * valley_slope;
 %    pause
 end
-zvec(:,1) = zvec(:,1) - min(min(zvec)) + baselevel;
+
+zvec(:,1) = zvec(:,1) + baselevel;
 
 sinuosity = svec(end)/xvec(end)
 

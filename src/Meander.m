@@ -24,6 +24,9 @@ bankfull_depth = data(13,1)
 floodplain_mode = data(14,1)
 bank_width= data(15,1)
 bank_height= data(16,1)
+create_floodplain_topography=data(17,1)
+floodplain_imax = data(18,1)
+floodplain_jmax = data(19,1)
 
 fclose(fileID);
 
@@ -69,6 +72,10 @@ view(-10,45)
 [nvec, xmatr, ymatr, zmatr] = threeD_structure(svec, xvec, yvec, zvec, width, imax, jmax, theta0, Centerline_Length, c_Fat, c_Skew, valley_slope, bank_height, floodplain_mode, bank_width);
 
 
+
+
+
+
 figure(3)
 plot(xmatr, ymatr)
 grid on
@@ -107,8 +114,76 @@ axis equal
 view(0,90)
 
 figure(8)
-scatter3(xmatr_vec, ymatr_vec, zmatr_vec, 10*ones(size(zbars_vec)), zbars_vec)
+scatter3(xmatr_vec, ymatr_vec, zmatr_vec, 7*ones(size(zbars_vec)), zbars_vec)
 grid on
 view(-10,45)
 
+if create_floodplain_topography==1 
 % 4 - Create full DEM (plus floodplain)
+
+    floodplain_left_margin = max(max(ymatr_vec));
+    floodplain_right_margin = min(min(ymatr_vec));
+    fp_upstr_bound = min(min(xmatr_vec));
+    fp_downstr_bound = max(max(xmatr_vec));
+
+    [xvec_fp, yvec_fp, zvec_fp] = create_floodplain(floodplain_left_margin, floodplain_right_margin, fp_upstr_bound, fp_downstr_bound, floodplain_imax, floodplain_jmax, valley_slope, baselevel);
+    [x_fp, y_fp, z_fp] = create_floodplain2(xvec_fp, yvec_fp, zvec_fp, xmatr, ymatr);
+    %	[x_fp_riv, y_fp_riv, z_fp_riv] = create_floodplain_river(xmatr, ymatr, xmatr_vec, ymatr_vec, zmatr_vec, xvec_fp, yvec_fp, zvec_fp);
+    
+    figure(9)
+    scatter3(x_fp, y_fp, z_fp, 25*ones(size(z_fp)), z_fp)
+    grid on
+    hold on 
+    
+    plot3(xmatr, ymatr, -ones(size(zmatr)), '-k')
+    view(0,90)
+
+   xmatr_vec = [xmatr_vec' x_fp']';
+   ymatr_vec = [ymatr_vec' y_fp']';
+   zmatr_vec = [zmatr_vec' z_fp']';
+   zbars_vec = [zbars_vec' zeros(size(z_fp'))]';
+    
+   figure(10)
+   scatter3(xmatr_vec, ymatr_vec, zmatr_vec, 7*ones(size(zbars_vec)), zbars_vec)
+   grid on
+    view(-10,45)
+    
+end
+
+%addpath C:\Users\steccag\Documents\OpenEarth\matlab\
+%oetsettings 
+%OK = WLGRID('write','FileName1',MeanderGrid,'PropName2',PropVal2, ...)
+%OK = WLGRID('write','FileName1',MeanderGrid,'PropName2',PropVal2, ...)
+    
+
+%OK = WLGRID('write','PropName1',PropVal1,'PropName2',PropVal2, ...)
+%   writes a grid file. The following property names are accepted when
+%   following the write command
+%     'FileName'        : Name of file to write
+%     'X'               : X-coordinates (can be a 1D vector 'stick' of an
+%                         orthogonal grid)
+%     'Y'               : Y-coordinates (can be a 1D vector 'stick' of an
+%                         orthogonal grid)
+%     'Enclosure'       : Enclosure array
+%     'AutoEnclosure'   : Use this keyword to automatically generate an
+%                         enclosure from the fields 'X and 'Y' if you don't
+%                         specify one.
+%     'CoordinateSystem': Coordinate system 'Cartesian' (default) or
+%                         'Spherical'
+%     'Format'          : 'NewRGF'   - keyword based, double precision file
+%                                      (default)
+%                         'OldRGF'   - single precision file
+%                         'SWANgrid' - SWAN formatted single precision file
+%     'MissingValue'    : Missing value MV to be used for NaN coordinates.
+%                         Any (X,Y) pair that matches (MV,MV) will be
+%                         shifted slightly to avoid clipping, hence don't
+%                         use MV to already mark clipped points in the X,Y
+%                         datasets provided.
+%
+%   Accepted without property name: x-coordinates, y-coordinates and
+%   enclosure array (in this order), file name, file format, coordinate
+%   system strings 'Cartesian' and 'Spherical' (non-abbreviated).
+%
+
+
+
