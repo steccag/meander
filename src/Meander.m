@@ -27,6 +27,8 @@ bank_height= data(16,1)
 create_floodplain_topography=data(17,1)
 floodplain_imax = data(18,1)
 floodplain_jmax = data(19,1)
+n_x_cells = data(20,1)
+n_y_cells = data(21,1)
 
 fclose(fileID);
 
@@ -150,11 +152,32 @@ if create_floodplain_topography==1
     
 end
 
-%addpath C:\Users\steccag\Documents\OpenEarth\matlab\
-%oetsettings 
-%OK = WLGRID('write','FileName1',MeanderGrid,'PropName2',PropVal2, ...)
-%OK = WLGRID('write','FileName1',MeanderGrid,'PropName2',PropVal2, ...)
+
+if create_floodplain_topography==0 
+    addpath C:\Users\steccag\Documents\OpenEarth\matlab\
+    oetsettings 
+
+    [svec_grid, xvec_grid, yvec_grid, zvec_grid] = integrate_meander_centerline(Centerline_Length, nmeanders, n_x_cells, baselevel, theta0, c_Fat, c_Skew, valley_slope);
+    bank_width_grid = bank_width;
+    [~, Xmesh, Ymesh, ~] = threeD_structure(svec_grid, xvec_grid, yvec_grid, zvec_grid, width, n_x_cells, n_y_cells, theta0, Centerline_Length, c_Fat, c_Skew, valley_slope, bank_height, floodplain_mode, bank_width_grid);
+    %[Xmesh, Ymesh, ~, ~] = convert_to_vec(xmatr_grid, ymatr_grid, zmatr_grid, zeros(size(zmatr_grid)));
     
+    
+
+    OK = wlgrid('write','FileName1','..\grid_topo\MeanderGrid.grd','X',Xmesh,'Y',Ymesh,'AutoEnclosure');
+elseif create_floodplain_topography==1 
+    addpath C:\Users\steccag\Documents\OpenEarth\matlab\
+    oetsettings 
+    
+
+    
+    
+    x_grid_spac = ( fp_downstr_bound - fp_upstr_bound) / n_x_cells;
+    y_grid_spac = ( floodplain_right_margin - floodplain_left_margin) / n_y_cells;
+    
+    [Xmesh,Ymesh] = meshgrid(fp_upstr_bound:x_grid_spac:fp_downstr_bound, floodplain_left_margin:y_grid_spac:floodplain_right_margin);
+    OK = wlgrid('write','FileName','..\grid_topo\MeanderGrid.grd','X',Xmesh,'Y',Ymesh,'AutoEnclosure');
+end
 
 %OK = WLGRID('write','PropName1',PropVal1,'PropName2',PropVal2, ...)
 %   writes a grid file. The following property names are accepted when
