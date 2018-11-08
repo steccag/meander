@@ -71,7 +71,8 @@ view(-10,45)
 
 
 % 3 - Create a 3d object
-[nvec, xmatr, ymatr, zmatr] = threeD_structure(svec, xvec, yvec, zvec, width, imax, jmax, theta0, Centerline_Length, c_Fat, c_Skew, valley_slope, bank_height, floodplain_mode, bank_width);
+n_add=0; %useless parameter as long as floodplain_mode is 1 or 2
+[nvec, xmatr, ymatr, zmatr] = threeD_structure(svec, xvec, yvec, zvec, width, imax, jmax, theta0, Centerline_Length, c_Fat, c_Skew, valley_slope, bank_height, floodplain_mode, bank_width, n_add);
 
 
 
@@ -94,7 +95,7 @@ view(-10,45)
 Theta = 0.225;
 f_ds = 10;
 bar_ampl = 0.5*bankfull_depth * width / Radius0 * sqrt(Theta)*f_ds;
-zbars = forced_bars(bar_ampl, Centerline_Length, width, nvec, svec, imax, jmax, floodplain_mode);
+zbars = forced_bars(bar_ampl, Centerline_Length, width, nvec, svec, imax, jmax, floodplain_mode, n_add);
 
 % convert to vectors for scatter plots
 [xmatr_vec, ymatr_vec, zmatr_vec, zbars_vec] = convert_to_vec(xmatr, ymatr, zmatr, zbars);
@@ -159,12 +160,19 @@ if create_floodplain_topography==0
 
     [svec_grid, xvec_grid, yvec_grid, zvec_grid] = integrate_meander_centerline(Centerline_Length, nmeanders, n_x_cells, baselevel, theta0, c_Fat, c_Skew, valley_slope);
     bank_width_grid = bank_width;
-    [~, Xmesh, Ymesh, ~] = threeD_structure(svec_grid, xvec_grid, yvec_grid, zvec_grid, width, n_x_cells, n_y_cells, theta0, Centerline_Length, c_Fat, c_Skew, valley_slope, bank_height, floodplain_mode, bank_width_grid);
+    n_add = floor(bank_width_grid / width * n_y_cells); %keep grid_spacing
+    floodplain_mode3 = 3; %use the most flexible mode with multiple bank lines
+    [nvec_grid, Xmesh, Ymesh, Zmesh] = threeD_structure(svec_grid, xvec_grid, yvec_grid, zvec_grid, width, n_x_cells, n_y_cells, theta0, Centerline_Length, c_Fat, c_Skew, valley_slope, bank_height, floodplain_mode3, bank_width_grid, n_add);
+    zbars_mesh = forced_bars(bar_ampl, Centerline_Length, width, nvec_grid, svec_grid, n_x_cells, n_y_cells, floodplain_mode3, n_add);
+    Zmesh = Zmesh + zbars_mesh;
     %[Xmesh, Ymesh, ~, ~] = convert_to_vec(xmatr_grid, ymatr_grid, zmatr_grid, zeros(size(zmatr_grid)));
-    
+   % zbars = forced_bars(bar_ampl, Centerline_Length, width, nvec, svec, imax, jmax, floodplain_mode, n_add);
     
 
-    OK = wlgrid('write','FileName1','..\grid_topo\MeanderGrid.grd','X',Xmesh,'Y',Ymesh,'AutoEnclosure');
+    OK = wlgrid('write','FileName','..\grid_topo\MeanderGrid.grd','X',Xmesh,'Y',Ymesh,'AutoEnclosure');
+    
+    %MATRIX= [zmatr_vec];
+    OK=wldep('write','..\grid_topo\MeanderTopo.dep',Zmesh)
 elseif create_floodplain_topography==1 
     addpath C:\Users\steccag\Documents\OpenEarth\matlab\
     oetsettings 
@@ -177,6 +185,9 @@ elseif create_floodplain_topography==1
     
     [Xmesh,Ymesh] = meshgrid(fp_upstr_bound:x_grid_spac:fp_downstr_bound, floodplain_left_margin:y_grid_spac:floodplain_right_margin);
     OK = wlgrid('write','FileName','..\grid_topo\MeanderGrid.grd','X',Xmesh,'Y',Ymesh,'AutoEnclosure');
+    
+        MATRIX= [xmatr_vec, ymatr_vec, zmatr_vec];
+    OK=wldep('write','FileName','..\grid_topo\MeanderTopo.dep','',MATRIX)
 end
 
 %OK = WLGRID('write','PropName1',PropVal1,'PropName2',PropVal2, ...)

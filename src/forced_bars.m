@@ -1,6 +1,6 @@
-function zbars = forced_bars(bar_ampl, Centerline_Length, width, nvec, svec, imax, jmax, floodplain_mode)
+function zbars = forced_bars(bar_ampl, Centerline_Length, width, nvec, svec, imax, jmax, floodplain_mode, n_add)
 
-[j1, jend, jfin] = get_j_limits(jmax, floodplain_mode);
+[j1, jend, jfin] = get_j_limits(jmax, floodplain_mode, n_add);
 
 zbars = zeros(imax, jfin);
 wavenumber = 2 * pi / Centerline_Length;
